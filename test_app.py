@@ -1,16 +1,18 @@
-import unittest
+import pytest
+from flask import Flask
+
+# Импортируем приложение из основного файла
 from app import app
 
-class BasicTests(unittest.TestCase):
+@pytest.fixture
+def client():
+    """Создаем тестовый клиент для Flask приложения."""
+    app.config['TESTING'] = True
+    with app.test_client() as client:
+        yield client
 
-    def setUp(self):
-        self.app = app.test_client()
-        self.app.testing = True
-
-    def test_home(self):
-        response = self.app.get('/')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json, {"message": "Hello, World!"})
-
-if __name__ == '__main__':
-    unittest.main()
+def test_home_route(client):
+    """Тестируем маршрут домашней страницы (/)"""
+    response = client.get('/')
+    assert response.status_code == 200
+    assert response.data.decode('utf-8') == "Hello, World!"
